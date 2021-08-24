@@ -690,14 +690,24 @@ DELETE FROM lsif_uploads WHERE id IN (%s)
 `
 
 //
+// OOB Migration:
+//   1. Fill in ref'd count where NULL
 //
+// When uploading:
+//   1. Find our initial ref'd count and update refcount of dependencies (if not NULL)
 //
+// Background A (for each repository with upload data):
+//   1. Pull policies that should be applied to repository
+//   2. Find candidate records to mark as expired
+//   3. Remove records protected by a policy from the working list
+//   4. Mark remaining records as expired
 //
-
-func (s *Store) MarkOldUploadsAsExpiredForRepository(ctx context.Context, repositoryID int) (count int, err error) {
-	// TODO
-	return 0, nil
-}
+// Background B:
+//   1. Find all expired records with a zero refcount
+//   2. Reduce the refcount of all their dependencies
+//   3. Soft delete record
+//   4. Repeat until fixed point
+//
 
 // SoftDeleteOldUploads marks uploads older than the given age that are not visible at the tip of the default branch
 // as deleted. The associated repositories will be marked as dirty so that their commit graphs are updated in the
