@@ -689,6 +689,16 @@ const hardDeleteUploadByIDQuery = `
 DELETE FROM lsif_uploads WHERE id IN (%s)
 `
 
+//
+//
+//
+//
+
+func (s *Store) MarkOldUploadsAsExpiredForRepository(ctx context.Context, repositoryID int) (count int, err error) {
+	// TODO
+	return 0, nil
+}
+
 // SoftDeleteOldUploads marks uploads older than the given age that are not visible at the tip of the default branch
 // as deleted. The associated repositories will be marked as dirty so that their commit graphs are updated in the
 // background.
