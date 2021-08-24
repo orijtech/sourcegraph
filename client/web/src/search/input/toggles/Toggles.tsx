@@ -31,6 +31,7 @@ export interface TogglesProps
     location: H.Location
     hasGlobalQueryBehavior?: boolean
     className?: string
+    hideCopyButton?: boolean
 }
 
 export const getFullQuery = (
@@ -62,6 +63,7 @@ export const Toggles: React.FunctionComponent<TogglesProps> = (props: TogglesPro
         settingsCascade,
         className,
         selectedSearchContextSpec,
+        hideCopyButton,
     } = props
 
     const structuralSearchDisabled = window.context?.experimentalFeatures?.structuralSearch === 'disabled'
@@ -197,13 +199,17 @@ export const Toggles: React.FunctionComponent<TogglesProps> = (props: TogglesPro
                     ]}
                 />
             )}
-            <div className="toggle-container__separator" />
-            <CopyQueryButton
-                fullQuery={fullQuery}
-                keyboardShortcutForFullCopy={KEYBOARD_SHORTCUT_COPY_FULL_QUERY}
-                isMacPlatform={isMacPlatform}
-                className="toggle-container__toggle toggle-container__copy-query-button"
-            />
+            {!hideCopyButton && (
+                <>
+                    <div className="toggle-container__separator" />
+                    <CopyQueryButton
+                        fullQuery={fullQuery}
+                        keyboardShortcutForFullCopy={KEYBOARD_SHORTCUT_COPY_FULL_QUERY}
+                        isMacPlatform={isMacPlatform}
+                        className="toggle-container__toggle toggle-container__copy-query-button"
+                    />
+                </>
+            )}
         </div>
     )
 }

@@ -15,6 +15,7 @@ import { lazyComponent } from '../util/lazyComponent'
 
 import { DashboardsRoutes } from './pages/dashboards/DasbhoardsRoutes'
 import { CreationRoutes } from './pages/insights/creation/CreationRoutes'
+import { InsightSearchBox } from './pages/insights/creation/search-insight/components/form-series-input/FormSeriesInput'
 
 const EditInsightLazyPage = lazyComponent(
     () => import('./pages/insights/edit-insight/EditInsightPage'),
@@ -32,7 +33,8 @@ export interface InsightsRouterProps
     extends SettingsCascadeProps,
         PlatformContextProps,
         TelemetryProps,
-        ExtensionsControllerProps {
+        ExtensionsControllerProps,
+        InsightSearchBox {
     /**
      * Authenticated user info, Used to decide where code insight will appears
      * in personal dashboard (private) or in organisation dashboard (public)
@@ -54,6 +56,7 @@ export const InsightsRouter = withAuthenticatedUser<InsightsRouterProps>(props =
 
             <Route path={`${match.url}/create`}>
                 <CreationRoutes
+                    {...props}
                     platformContext={platformContext}
                     authenticatedUser={authenticatedUser}
                     settingsCascade={settingsCascade}
@@ -63,12 +66,13 @@ export const InsightsRouter = withAuthenticatedUser<InsightsRouterProps>(props =
 
             <Route
                 path={`${match.url}/edit/:insightID`}
-                render={(props: RouteComponentProps<{ insightID: string }>) => (
+                render={(routeProps: RouteComponentProps<{ insightID: string }>) => (
                     <EditInsightLazyPage
+                        {...props}
                         platformContext={platformContext}
                         authenticatedUser={authenticatedUser}
                         settingsCascade={settingsCascade}
-                        insightID={props.match.params.insightID}
+                        insightID={routeProps.match.params.insightID}
                     />
                 )}
             />

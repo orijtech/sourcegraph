@@ -12,11 +12,12 @@ import { RepositoriesField } from '../../../../../../components/form/repositorie
 import { VisibilityPicker } from '../../../../../../components/visibility-picker/VisibilityPicker'
 import { SupportedInsightSubject } from '../../../../../../core/types/subjects'
 import { CreateInsightFormFields, EditableDataSeries } from '../../types'
+import { InsightSearchBox } from '../form-series-input/FormSeriesInput'
 import { FormSeries } from '../form-series/FormSeries'
 
 import styles from './SearchInsightCreationForm.module.scss'
 
-interface CreationSearchInsightFormProps {
+interface CreationSearchInsightFormProps extends InsightSearchBox {
     /** This component might be used in edit or creation insight case. */
     mode?: 'creation' | 'edit'
 
@@ -155,6 +156,7 @@ export const SearchInsightCreationForm: React.FunctionComponent<CreationSearchIn
                 innerRef={series.input.ref}
             >
                 <FormSeries
+                    {...props}
                     series={series.input.value}
                     isBackendInsightEdit={isEditMode && allReposMode.input.value}
                     showValidationErrorsOnMount={submitted}

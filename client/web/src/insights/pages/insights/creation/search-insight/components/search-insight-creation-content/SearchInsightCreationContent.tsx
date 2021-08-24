@@ -8,6 +8,7 @@ import { FormChangeEvent, SubmissionErrors } from '../../../../../../components/
 import { SupportedInsightSubject } from '../../../../../../core/types/subjects'
 import { CreateInsightFormFields } from '../../types'
 import { getSanitizedRepositories } from '../../utils/insight-sanitizer'
+import { InsightSearchBox } from '../form-series-input/FormSeriesInput'
 import { SearchInsightLivePreview } from '../live-preview-chart/SearchInsightLivePreview'
 import { SearchInsightCreationForm } from '../search-insight-creation-form/SearchInsightCreationForm'
 
@@ -15,7 +16,7 @@ import { useEditableSeries, createDefaultEditSeries } from './hooks/use-editable
 import { useInsightCreationForm } from './hooks/use-insight-creation-form/use-insight-creation-form'
 import styles from './SearchInsightCreationContent.module.scss'
 
-export interface SearchInsightCreationContentProps {
+export interface SearchInsightCreationContentProps extends InsightSearchBox {
     /** This component might be used in edit or creation insight case. */
     mode?: 'creation' | 'edit'
     /** Final settings cascade. Used for title field validation. */
@@ -106,6 +107,7 @@ export const SearchInsightCreationContent: React.FunctionComponent<SearchInsight
     return (
         <div data-testid={dataTestId} className={classnames(styles.content, className)}>
             <SearchInsightCreationForm
+                {...props}
                 mode={mode}
                 className={styles.contentForm}
                 innerRef={ref}

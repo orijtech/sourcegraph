@@ -51,6 +51,8 @@ export interface SearchBoxProps
 
     /** Don't show search help button */
     hideHelpButton?: boolean
+
+    hideCopyButton?: boolean
 }
 
 export const SearchBox: React.FunctionComponent<SearchBoxProps> = props => {

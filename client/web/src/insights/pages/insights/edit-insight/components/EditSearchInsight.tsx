@@ -6,12 +6,13 @@ import { SubmissionErrors } from '../../../../components/form/hooks/useForm'
 import { InsightType, SearchBasedInsight } from '../../../../core/types'
 import { isSearchBackendBasedInsight } from '../../../../core/types/insight/search-insight'
 import { SupportedInsightSubject } from '../../../../core/types/subjects'
+import { InsightSearchBox } from '../../creation/search-insight/components/form-series-input/FormSeriesInput'
 import { createDefaultEditSeries } from '../../creation/search-insight/components/search-insight-creation-content/hooks/use-editable-series'
 import { SearchInsightCreationContent } from '../../creation/search-insight/components/search-insight-creation-content/SearchInsightCreationContent'
 import { CreateInsightFormFields, InsightStep } from '../../creation/search-insight/types'
 import { getSanitizedSearchInsight } from '../../creation/search-insight/utils/insight-sanitizer'
 
-interface EditSearchBasedInsightProps {
+interface EditSearchBasedInsightProps extends InsightSearchBox {
     insight: SearchBasedInsight
     finalSettings: Settings
     subjects: SupportedInsightSubject[]
@@ -64,6 +65,7 @@ export const EditSearchBasedInsight: React.FunctionComponent<EditSearchBasedInsi
 
     return (
         <SearchInsightCreationContent
+            {...props}
             mode="edit"
             className="pb-5"
             initialValue={insightFormValues}

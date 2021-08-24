@@ -9,11 +9,16 @@ import { AuthenticatedUser } from '../../../../auth'
 import { lazyComponent } from '../../../../util/lazyComponent'
 
 import { InsightCreationPageType } from './InsightCreationPage'
+import { InsightSearchBox } from './search-insight/components/form-series-input/FormSeriesInput'
 
 const IntroCreationLazyPage = lazyComponent(() => import('./intro/IntroCreationPage'), 'IntroCreationPage')
 const InsightCreationLazyPage = lazyComponent(() => import('./InsightCreationPage'), 'InsightCreationPage')
 
-interface CreationRoutesProps extends TelemetryProps, PlatformContextProps<'updateSettings'>, SettingsCascadeProps {
+interface CreationRoutesProps
+    extends TelemetryProps,
+        PlatformContextProps<'updateSettings'>,
+        SettingsCascadeProps,
+        InsightSearchBox {
     /**
      * Authenticated user info, Used to decide where code insight will appears
      * in personal dashboard (private) or in organisation dashboard (public)
@@ -42,6 +47,7 @@ export const CreationRoutes: React.FunctionComponent<CreationRoutesProps> = prop
                 path={`${match.url}/search`}
                 render={() => (
                     <InsightCreationLazyPage
+                        {...props}
                         mode={InsightCreationPageType.Search}
                         telemetryService={telemetryService}
                         platformContext={platformContext}
@@ -55,6 +61,7 @@ export const CreationRoutes: React.FunctionComponent<CreationRoutesProps> = prop
                 exact={true}
                 render={() => (
                     <InsightCreationLazyPage
+                        {...props}
                         mode={InsightCreationPageType.LangStats}
                         telemetryService={telemetryService}
                         platformContext={platformContext}

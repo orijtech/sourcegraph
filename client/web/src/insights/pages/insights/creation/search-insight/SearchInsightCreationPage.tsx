@@ -12,6 +12,7 @@ import { FORM_ERROR, FormChangeEvent } from '../../../../components/form/hooks/u
 import { SearchBasedInsight } from '../../../../core/types'
 import { useInsightSubjects } from '../../../../hooks/use-insight-subjects/use-insight-subjects'
 
+import { InsightSearchBox } from './components/form-series-input/FormSeriesInput'
 import {
     SearchInsightCreationContent,
     SearchInsightCreationContentProps,
@@ -26,7 +27,7 @@ export interface InsightCreateEvent {
     insight: SearchBasedInsight
 }
 
-export interface SearchInsightCreationPageProps extends SettingsCascadeProps, TelemetryProps {
+export interface SearchInsightCreationPageProps extends SettingsCascadeProps, TelemetryProps, InsightSearchBox {
     /**
      * Set initial value for insight visibility setting.
      */
@@ -137,6 +138,7 @@ export const SearchInsightCreationPage: React.FunctionComponent<SearchInsightCre
                         <SearchInsightCreationContent
                             className="pb-5"
                             dataTestId="search-insight-create-page-content"
+                            {...props}
                             settings={settingsCascade.final}
                             initialValue={mergedInitialValues}
                             subjects={subjects}

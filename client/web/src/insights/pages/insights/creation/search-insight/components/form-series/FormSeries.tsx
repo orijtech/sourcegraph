@@ -2,12 +2,12 @@ import classnames from 'classnames'
 import React from 'react'
 
 import { EditableDataSeries } from '../../types'
-import { FormSeriesInput } from '../form-series-input/FormSeriesInput'
+import { FormSeriesInput, InsightSearchBox } from '../form-series-input/FormSeriesInput'
 
 import { SeriesCard } from './components/series-card/SeriesCard'
 import styles from './FormSeries.module.scss'
 
-export interface FormSeriesProps {
+export interface FormSeriesProps extends InsightSearchBox {
     /**
      * This prop represents the case whenever the edit insight UI page
      * deals with backend insight. We need to disable our search insight
@@ -79,6 +79,7 @@ export const FormSeries: React.FunctionComponent<FormSeriesProps> = props => {
                 line.edit ? (
                     <FormSeriesInput
                         key={line.id}
+                        {...props}
                         isSearchQueryDisabled={isBackendInsightEdit}
                         showValidationErrorsOnMount={showValidationErrorsOnMount}
                         index={index + 1}

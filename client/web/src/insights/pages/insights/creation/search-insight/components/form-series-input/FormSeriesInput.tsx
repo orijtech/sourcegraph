@@ -2,6 +2,7 @@ import classnames from 'classnames'
 import React from 'react'
 import { noop } from 'rxjs'
 
+import { SearchBox, SearchBoxProps } from '../../../../../../../search/input/SearchBox'
 import { FormInput } from '../../../../../../components/form/form-input/FormInput'
 import { useField } from '../../../../../../components/form/hooks/useField'
 import { useForm } from '../../../../../../components/form/hooks/useForm'
@@ -12,7 +13,9 @@ import { DEFAULT_ACTIVE_COLOR, FormColorInput } from '../form-color-input/FormCo
 const requiredNameField = createRequiredValidator('Name is a required field for data series.')
 const validQuery = createRequiredValidator('Query is a required field for data series.')
 
-interface FormSeriesInputProps {
+export interface InsightSearchBox extends Omit<SearchBoxProps, 'onSubmit' | 'onCancel' | 'onChange'> {}
+
+interface FormSeriesInputProps extends InsightSearchBox {
     /** Series index. */
     index: number
 
@@ -106,6 +109,7 @@ export const FormSeriesInput: React.FunctionComponent<FormSeriesInputProps> = pr
         formApi: formAPI,
         validators: { sync: validQuery },
         disabled: isSearchQueryDisabled,
+        type: 'hidden',
     })
 
     const colorField = useField({
@@ -159,6 +163,27 @@ export const FormSeriesInput: React.FunctionComponent<FormSeriesInputProps> = pr
                 className="mt-4"
                 {...queryField.input}
             />
+
+            <div className="d-flex">
+                <SearchBox
+                    {...props}
+                    setVersionContext={() => Promise.resolve()}
+                    availableVersionContexts={undefined}
+                    globbing={false}
+                    isSearchOnboardingTourVisible={false}
+                    onChange={newQueryState => {
+                        queryField.meta.setState(state => ({ ...state, value: newQueryState.query }))
+                    }}
+                    onSubmit={() => {}}
+                    queryState={{
+                        query: query || '',
+                    }}
+                    hideVersionContexts={true}
+                    showSearchContext={false}
+                    hideHelpButton={true}
+                    hideCopyButton={true}
+                />
+            </div>
 
             <FormColorInput
                 name={`color group of ${index} series`}

@@ -16,6 +16,7 @@ import { useInsightSubjects } from '../../../hooks/use-insight-subjects/use-insi
 import { useQueryParameters } from '../../../hooks/use-query-parameters'
 
 import { LangStatsInsightCreationPage } from './lang-stats/LangStatsInsightCreationPage'
+import { InsightSearchBox } from './search-insight/components/form-series-input/FormSeriesInput'
 import { SearchInsightCreationPage } from './search-insight/SearchInsightCreationPage'
 
 export enum InsightCreationPageType {
@@ -54,7 +55,8 @@ interface InsightCreateEvent {
 interface InsightCreationPageProps
     extends PlatformContextProps<'updateSettings'>,
         SettingsCascadeProps,
-        TelemetryProps {
+        TelemetryProps,
+        InsightSearchBox {
     mode: InsightCreationPageType
 }
 
@@ -104,6 +106,7 @@ export const InsightCreationPage: React.FunctionComponent<InsightCreationPagePro
     if (mode === InsightCreationPageType.Search) {
         return (
             <SearchInsightCreationPage
+                {...props}
                 visibility={insightVisibility}
                 settingsCascade={settingsCascade}
                 telemetryService={telemetryService}

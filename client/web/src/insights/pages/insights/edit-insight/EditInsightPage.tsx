@@ -15,13 +15,17 @@ import { PageTitle } from '../../../../components/PageTitle'
 import { INSIGHTS_ALL_REPOS_SETTINGS_KEY, isLangStatsInsight, isSearchBasedInsight } from '../../../core/types'
 import { useInsightSubjects } from '../../../hooks/use-insight-subjects/use-insight-subjects'
 import { findInsightById } from '../../../hooks/use-insight/use-insight'
+import { InsightSearchBox } from '../creation/search-insight/components/form-series-input/FormSeriesInput'
 
 import { EditLangStatsInsight } from './components/EditLangStatsInsight'
 import { EditSearchBasedInsight } from './components/EditSearchInsight'
 import styles from './EditInsightPage.module.scss'
 import { usePageHandlers } from './hooks/use-page-handlers'
 
-export interface EditInsightPageProps extends SettingsCascadeProps, PlatformContextProps<'updateSettings'> {
+export interface EditInsightPageProps
+    extends SettingsCascadeProps,
+        PlatformContextProps<'updateSettings'>,
+        InsightSearchBox {
     /** Normalized insight id <type insight>.insight.<name of insight> */
     insightID: string
 
@@ -29,7 +33,7 @@ export interface EditInsightPageProps extends SettingsCascadeProps, PlatformCont
      * Authenticated user info, Used to decide where code insight will appears
      * in personal dashboard (private) or in organisation dashboard (public)
      */
-    authenticatedUser: Pick<AuthenticatedUser, 'id' | 'organizations' | 'username'>
+    authenticatedUser: AuthenticatedUser
 }
 
 export const EditInsightPage: React.FunctionComponent<EditInsightPageProps> = props => {
@@ -103,6 +107,7 @@ export const EditInsightPage: React.FunctionComponent<EditInsightPageProps> = pr
 
             {isSearchBasedInsight(insight) && (
                 <EditSearchBasedInsight
+                    {...props}
                     insight={insight}
                     finalSettings={finalSettings}
                     subjects={subjects}
