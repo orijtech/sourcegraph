@@ -25,7 +25,7 @@ http.createServer(async (request, response) => {
         }
 
         response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-        await handleRequest(response, request.url!, {})
+        await handleRequest(response, request.url!, require('./jscontext').JSCONTEXT, {})
         return
     }
 

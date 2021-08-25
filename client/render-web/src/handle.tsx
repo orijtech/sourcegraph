@@ -1,7 +1,7 @@
 /// <reference types="react/experimental" />
 /// <reference types="react-dom/experimental" />
 
-import { Writable } from 'node:stream'
+import { Writable } from 'stream'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { StaticRouter } from 'react-router'
@@ -42,7 +42,7 @@ export const handleRequest = async (
 }
 
 if (require.main === module) {
-    handleRequest(process.stdout, process.argv[2], 'TODO', {})
+    handleRequest(process.stdout, process.argv[2], {}, {})
         .catch(error => console.error('Error:', error))
         .finally(() => process.exit(0))
 }
