@@ -479,9 +479,12 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
             return <HeroPage icon={ServerIcon} title={`${statusCode}: ${statusText}`} subtitle={subtitle} />
         }
 
-        const { authenticatedUser } = this.state
+        let { authenticatedUser } = this.state
         if (authenticatedUser === undefined) {
-            return null
+            if (!window.context.PRERENDER) {
+                return null
+            }
+            authenticatedUser = null
         }
 
         const { children, ...props } = this.props
