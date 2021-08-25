@@ -1,12 +1,13 @@
 {
   "private": true,
   "name": "@sourcegraph/render-web",
-  "version": "1.10.1",
+  "version": "0.0.1",
   "description": "Server-side renderer for the Sourcegraph web app",
   "license": "Apache-2.0",
   "scripts": {
     "test": "jest",
-    "eslint": "eslint --cache '**/*.[tj]s?(x)'"
+    "eslint": "eslint --cache '**/*.[tj]s?(x)'",
+    "serve": "NODE_ENV=development babel-node -x .tsx,.ts src/serve.ts"
   }
 }
 

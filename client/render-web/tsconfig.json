@@ -8,7 +8,7 @@
     "outDir": "out",
   },
   "references": [
-    { "path": "../web" },
+    // { "path": "../web" },
   ],
   "include": ["**/*", ".*", "./src/**/*.json"],
   "exclude": ["../../node_modules", "./out"],
