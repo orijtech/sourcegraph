@@ -2,14 +2,17 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -19,6 +22,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/sourcegraph/sourcegraph/internal/debugserver"
 	"github.com/sourcegraph/sourcegraph/internal/env"
 	"github.com/sourcegraph/sourcegraph/internal/logging"
@@ -32,8 +36,30 @@ var logRequests, _ = strconv.ParseBool(env.Get("LOG_REQUESTS", "", "log HTTP req
 
 const port = "3180"
 
-// requestMu ensures we only do one request at a time to prevent tripping abuse detection.
-var requestMu sync.Mutex
+// todo: requestMu ensures we only do one request at a time to prevent tripping abuse detection.
+type tokenLocks struct {
+	sync.RWMutex
+	locks map[string]*sync.Mutex
+}
+
+func (l *tokenLocks) get(token string) *sync.Mutex {
+	l.RLock()
+	lock, ok := l.locks[token]
+	l.RUnlock()
+
+	if ok {
+		return lock
+	}
+
+	l.Lock()
+	lock, ok = l.locks[token]
+	if !ok {
+		lock = &sync.Mutex{}
+		l.locks[token] = lock
+	}
+	l.Unlock()
+	return lock
+}
 
 var metricWaitingRequestsGauge = promauto.NewGauge(prometheus.GaugeOpts{
 	Name: "github_proxy_waiting_requests",
@@ -81,14 +107,30 @@ func main() {
 		IdleConnTimeout: 30 * time.Second,
 	}}
 
+	tokenLocks := &tokenLocks{
+		locks: make(map[string]*sync.Mutex),
+	}
+
 	var h http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p, err := httputil.DumpRequest(r, false)
+		fmt.Println("req", err, string(p))
+
+		var token string
 		q2 := r.URL.Query()
 		h2 := make(http.Header)
 		for k, v := range r.Header {
 			if _, found := hopHeaders[k]; !found {
 				h2[k] = v
 			}
+
+			if k == "Authorization" && len(v) > 0 {
+				fields := strings.Fields(v[0])
+				if len(fields) > 1 {
+					token = fields[1]
+				}
+			}
 		}
+		fmt.Println("got token", token)
 
 		req2 := &http.Request{
 			Method: r.Method,
@@ -102,17 +144,19 @@ func main() {
 			Header: h2,
 		}
 
+		lock := tokenLocks.get(token)
+
 		metricWaitingRequestsGauge.Inc()
-		requestMu.Lock()
+		lock.Lock()
 		metricWaitingRequestsGauge.Dec()
 		resp, err := client.Do(req2)
-		requestMu.Unlock()
+		lock.Unlock()
 		if err != nil {
 			log15.Warn("proxy error", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		for k, v := range resp.Header {
 			w.Header()[k] = v
