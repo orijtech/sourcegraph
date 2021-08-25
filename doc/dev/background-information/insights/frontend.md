@@ -37,17 +37,17 @@ At the moment, we have two different types of insights.
 
 1. **Extension based insights.** <br/>
 These types of insights are working via Extension API. This means that we are fetching insight
-data via extension. At the moment, we have only at least two insight extensions that are working like that.
+data via extension. At the moment, we have at least two insight extensions that are working like that.
 <br /> &nbsp;
    - [Search based insight (line chart)](https://github.com/sourcegraph/sourcegraph-search-insights)
    - [Code stats insight (pie chart)](https://github.com/sourcegraph/sourcegraph-code-stats-insights). <br />
    
 > These extensions are running on the frontend and making multiple network requests to prepare and process
-insight data and then passing this data to the React page component to render charts.
+insight data and then pass this data to the React page component to render charts.
 > You can find extension documentation here [Sourcegraph extensions](../sourcegraph_extensions.md)
 
 2. **Backend based insights.** <br/>
-These insights are working via our graphql API only. At the moment, only search based (line chart)
+These insights are working via our graphql API only. At the moment, only search based insight (line chart)
 can be backend-based insight. Code stats insight (pie chart) works only via extension API.
 
 You can find typescript types that describe these insight entities
@@ -59,7 +59,7 @@ in the [/core/types/insights/index.ts](../../../../client/web/src/insights/core/
 To be able to fetch data for some insight, we need to store some insight configuration (input data), such as
 data series config - line color, search query string, the title of data series.
 
-We use the setting cascade to store these insight configurations. Search based insight configuration looks 
+We use the setting cascade to store these insight configurations. For example, Search based insight configuration looks 
 something like this 
 
 ```json
@@ -102,11 +102,10 @@ const insightConfigs = settings.pipe(
 )
 ```
 
-> Code stats extension insight does exactly this thing as well 
-> to get insight configurations and get insights data.
+> Code stats extension insight does exactly this thing to get insight configurations and get insights data.
 
 Backend based insights also have their insight configurations, and they are also stored
-in same settings cascade but by some special property key `insights.allrepos`
+in the same settings cascade but by special property key `insights.allrepos`
 
 ```json
 
@@ -149,14 +148,14 @@ visibility setting.
 
 This setting is responsible for storing insight in some particular setting subject file (personal, org level, or global jsonc file)
 For example, if I created insight with some particular organization, the logic behind the creation page will load
-jsonc file of organization subject add newly creation insight (its configuration) to this jsonc file
-and then saves it via our gql API and trigger re-hydration for local settings that you don't need to reload the page
+`jsonc` file of organization subject then add newly created insight (its configuration) to this `jsonc` file
+and then saves it via our gql API and trigger re-hydration for local settings, so you don't need to reload the page
 to see the last updated settings cascade on the page.
 
 Also, this setting affects what dashboard will be used to show this insight.
 
-It is worth mentioning that we use setting cascade subject not only insight configuration but also dashboard configurations.
-We will cover this in other sections here.
+It is worth mentioning that we use setting cascade subjects not only for storing insight configurations but also dashboard configurations.
+We will cover this in other sections further.
 
 
 ## Quick intro to the setting cascade
@@ -164,15 +163,15 @@ We will cover this in other sections here.
 As we mentioned before all insights (their configurations) are stored in the setting cascade. But what is the setting cascade?
 
 In a nutshell, this is just a system around a couple of configuration files (called subjects). These files
-are just jsonc files. But each subject (jsonc) file has its cascade level (means that setting cascade has some file hierarchy)
+are just `jsonc` files. But each subject (`jsonc`) file has its cascade level (means that setting cascade has some file hierarchy)
 
 ![settings-cascade-levels.png](assets/settings-cascade-levels.png)
 
-So eventually, the FE merges all these files in one big jsonc object and deserializes this object to a common js object.
+So eventually, the FE merges all these files in one big `jsonc` object and deserializes this object to a common js object.
 You can find these merge logic here [/client/shared/src/settings/settings.ts](../../../../client/shared/src/settings/settings.ts) 
 `mergeSettings` function.
 
-We use settings cascade a lot in different places, In fact, our dashboard system and insight visibility was built on top
+We use settings cascade a lot in different places, In fact, our dashboard system and insight visibility were built on top
 of settings cascade levels.  
 
 
@@ -206,17 +205,17 @@ All dashboards have the following hierarchy
 
 1. **All insights dashboard**
 <br/> This dashboard contains all available user insights from all places.
-All users have this dashboard by default, and users can't delete this dashboard.
+All users have this dashboard by default, users can't delete this dashboard.
 2. **< user name >'s insights** 
 <br/> This is something called **built-in dashboard**. This dashboard represents
 your personal level of settings, which means that this dashboard contains all insights from your
-personal setting cascade subject jsonc file and only that insights. This dashboard also can't be deleted.
+personal setting cascade subject `jsonc` file and only these insights. This dashboard also can't be deleted.
 3. **< organization name >'s insights**
 <br /> This is also a built-in dashboard. It has the same functionality as a personal dashboard but contains
 insights only from this org level jsonc setting subject file.
 4. **Global insights**
 <br/> Also, built-in dashboard. This dashboard contains insights from the subject of the global setting,
-which is shared across all users within one sourcegraph instance. You should be an admin to be able to
+which is shared across all users within single sourcegraph instance. You should be an admin to be able to
 write and update this setting subject.
 
 All three types of dashboards (user, organizations, and global) can have their **custom dashboards** via dashboard creation UI.
@@ -260,8 +259,8 @@ Let's take a look at the dashboard system in action. For example, let's describe
 2. With `useDashboard` hook ([source link](../../../../client/web/src/insights/hooks/use-dashboards/use-dashboards.ts)) we select/extract all 
 reachable dashboards from all settings cascade levels.
 3. Then we map the dashboard id from the URL and all dashboard configs, extract information about dashboard 
-insights id (`insightIds` property)
-4. Pass insightsId information to component for rendering insights (in case of the dashboard page this component 
+like insights ids (`insightIds` property)
+4. Pass `insightsId` information to component for rendering insights (in case of the dashboard page this component 
 is `SmartInsightsViewGrid.tsx` [source](../../../../client/web/src/insights/components/insights-view-grid/SmartInsightsViewGrid.tsx)) 
 5. `SmartInsightsViewGrid.tsx` component will iterate over all `insightIds` get insight configuration from setting
 cascade by `useInsight()` [source](../../../../client/web/src/insights/hooks/use-insight/use-insight.ts) hook and pick the right component 
