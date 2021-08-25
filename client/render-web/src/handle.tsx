@@ -6,7 +6,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { StaticRouter } from 'react-router'
 
-import { EnterpriseWebApp } from '../src/enterprise/EnterpriseWebApp'
+import { EnterpriseWebApp } from '@sourcegraph/web/src/enterprise/EnterpriseWebApp'
 
 import { entrypointHTML } from './common'
 

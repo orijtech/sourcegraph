@@ -1,8 +1,7 @@
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
     "baseUrl": ".",
     "types": ["node"],
     "jsx": "react",
@@ -10,8 +9,8 @@
     "outDir": "out",
   },
   "references": [
-    { "path": ".." },
+    { "path": "../web" },
   ],
   "include": ["**/*", ".*", "./src/**/*.json"],
-  "exclude": ["../../../node_modules", "../node_modules", "./out"],
+  "exclude": ["../../node_modules", "./out"],
 }

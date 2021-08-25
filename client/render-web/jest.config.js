@@ -1,17 +1,16 @@
 // @ts-check
 const path = require('path')
 
-const config = require('../../../jest.config.base')
+const config = require('../../jest.config.base')
 
 /** @type {jest.InitialOptions} */
 const exportedConfig = {
   ...config,
-  displayName: 'web-server',
+  displayName: 'render-web',
   rootDir: __dirname,
-  roots: ['<rootDir>'],
   setupFiles: [
     ...config.setupFiles,
-    path.join(__dirname, 'jestSetup.ts'),
+    path.join(__dirname, 'src', 'jestSetup.ts'),
   ]
 }
 
