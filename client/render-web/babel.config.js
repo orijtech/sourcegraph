@@ -1,6 +1,8 @@
 // @ts-check
 
 const { babelPresetEnvCommonOptions } = require('../../babel.config')
+const jestConfig = require('../../jest.config.base')
+jestConfig
 
 /** @type {import('@babel/core').TransformOptions} */
 const config = {
@@ -16,7 +18,8 @@ const config = {
     [
       '@babel/preset-env',
       {
-        // This program is run with Node instead of in the browser, so 
+        // This program is run with Node instead of in the browser, so we need to compile it to
+        // CommonJS.
         modules: 'commonjs',
         ...babelPresetEnvCommonOptions,
       },
@@ -29,7 +32,6 @@ const config = {
       extensions: [".css", ".scss"],
       "camelCase": true,
     }],
-    ['@babel/plugin-transform-typescript', { isTSX: true }]
   ]
 }
 
