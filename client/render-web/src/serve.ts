@@ -37,7 +37,6 @@ http.createServer(async (request, response) => {
         return
     }
 
-    // request.headers.host = `${webpackHost}:${webpackPort}`
     const options: http.RequestOptions = {
         hostname: webpackHost,
         port: webpackPort,
