@@ -1,11 +1,11 @@
 import { PassThrough } from 'stream'
 
-import { handleRequest } from './handle'
+import { render } from './render'
 
 const handle = async (pathname: string): Promise<string> => {
     const stream = new PassThrough()
 
-    const done = handleRequest(stream, pathname, {}, { noEntrypointHTML: true })
+    const done = render(stream, pathname, {}, { noEntrypointHTML: true })
 
     const chunks = []
     for await (const chunk of stream) {

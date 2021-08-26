@@ -1,35 +1,63 @@
 import './browserEnv'
 
-import child_process from 'child_process'
 import http from 'http'
-import path from 'path'
 
-import { handleRequest } from './handle'
+import { isErrorLike } from '@sourcegraph/shared/src/util/errors'
+
+import { render, RenderRequest, RenderResponse } from './render'
+
+// TODO(sqs): rename this project from render-web to prerender? align with what's in the Go ui package.
 
 const port = process.env.PORT || 3190
 
+const wrappedRender = async (request: RenderRequest): Promise<RenderResponse> => {
+    try {
+        return await render(request)
+    } catch (error) {
+        console.error(`Error (${request.requestURI}):`, error)
+        return {
+            error: isErrorLike(error)
+                ? error.name
+                    ? `${error.name}: ${error.message}`
+                    : error.message
+                : String(error),
+        }
+    }
+}
+
+const jsonRequestBody = async (request: http.IncomingMessage): Promise<unknown> => {
+    const buffers = []
+    for await (const chunk of request) {
+        buffers.push(chunk)
+    }
+    return JSON.parse(Buffer.concat(buffers).toString()) as unknown
+}
+
+// TODO(sqs): eslint disable below, how can we remove it?
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 http.createServer(async (request, response) => {
-    const SPAWN = false
-    if (SPAWN) {
-        const child = child_process.execFile('babel-node', [
-            '-x',
-            '.tsx,.ts',
-            path.join(__dirname, 'handle.tsx'),
-            request.url!,
-        ])
-        response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-        child.stdout!.pipe(response)
-        child.on('error', error => console.error(error))
+    if (request.method !== 'POST') {
+        response.writeHead(405)
+        response.write('method must be POST\n')
+        response.end()
         return
     }
 
-    // TODO(sqs): handle when not HTTP 200 (support other HTTP status codes, including redirects)
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+    let renderRequest: RenderRequest
     try {
-        await handleRequest(response, request.url!, require('./jscontext').JSCONTEXT, {})
-    } catch (err) {
-        console.error(`Error (${request.url}): ${err}`)
+        renderRequest = (await jsonRequestBody(request)) as RenderRequest
+    } catch {
+        response.writeHead(400)
+        response.write('invalid RenderRequest JSON in request body\n')
+        response.end()
+        return
     }
+
+    const renderResponse = await wrappedRender(renderRequest)
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' })
+    response.write(JSON.stringify(renderResponse))
+    response.write('\n')
+    response.end()
 }).listen(port)
 
 console.error(`Ready at: http://localhost:${port}`)
