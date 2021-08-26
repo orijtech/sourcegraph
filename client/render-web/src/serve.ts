@@ -7,9 +7,9 @@ import path from 'path'
 import { handleRequest } from './handle'
 
 const webpackHost = 'sourcegraph.test'
-const webpackPort = 3443
+const webpackPort = 3080
 
-const port = process.env.PORT || 5501
+const port = process.env.PORT || 3079
 
 http.createServer(async (request, response) => {
     const PRERENDER = true
@@ -37,6 +37,7 @@ http.createServer(async (request, response) => {
         return
     }
 
+    // request.headers.host = `${webpackHost}:${webpackPort}`
     const options: http.RequestOptions = {
         hostname: webpackHost,
         port: webpackPort,
@@ -47,14 +48,6 @@ http.createServer(async (request, response) => {
 
     // Forward each incoming request
     const proxyRequest = http.request(options, async proxyRes => {
-        // If esbuild returns "not found", send a custom 404 page
-        if (proxyRes.statusCode === 404) {
-            response.writeHead(404, { 'Content-Type': 'text/plain' })
-            response.end()
-            return
-        }
-
-        // Otherwise, forward the response to the client
         response.writeHead(proxyRes.statusCode!, proxyRes.headers)
         proxyRes.pipe(response, { end: true })
     })
