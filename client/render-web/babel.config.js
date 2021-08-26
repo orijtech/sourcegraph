@@ -2,18 +2,16 @@
 
 const { babelPresetEnvCommonOptions } = require('../../babel.config')
 const jestConfig = require('../../jest.config.base')
-jestConfig
+
+
+if (!jestConfig.transformIgnorePatterns) {
+  throw new Error('expected jest config to specify transformIgnorePatterns')
+}
 
 /** @type {import('@babel/core').TransformOptions} */
 const config = {
   extends: '../../babel.config.js',
-  ignore: [
-    // TODO(sqs): sync up with jest.config.base.js transformIgnorePatterns
-    '../../node_modules/react-dom/**',
-    '../../node_modules/react/**',
-    '../../node_modules/mdi-react/**',
-    '../../node_modules/monaco-editor/**',
-  ],
+  ignore: jestConfig.transformIgnorePatterns.map(pattern => new RegExp(pattern)),
   presets: [
     [
       '@babel/preset-env',
@@ -21,6 +19,10 @@ const config = {
         // This program is run with Node instead of in the browser, so we need to compile it to
         // CommonJS.
         modules: 'commonjs',
+        targets: {
+          node: 'current'
+        },
+        ignoreBrowserslistConfig: true,
         ...babelPresetEnvCommonOptions,
       },
     ],
