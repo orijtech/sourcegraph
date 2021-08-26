@@ -23,8 +23,8 @@ export const handleRequest = async (
             </StaticRouter>
         </React.StrictMode>
     )
-    // ReactDOMServer.renderToString(e)
-    // await new Promise(resolve => setTimeout(resolve))
+    ReactDOMServer.renderToString(e)
+    await new Promise(resolve => setTimeout(resolve))
     const appElementHTML = ReactDOMServer.renderToString(e)
 
     if (!noEntrypointHTML) {

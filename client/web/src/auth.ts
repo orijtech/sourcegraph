@@ -73,7 +73,7 @@ export function refreshAuthenticatedUser(): Observable<never> {
 export const authRequired = authenticatedUser.pipe(map(user => user === null && !window.context?.sourcegraphDotComMode))
 
 // Populate authenticatedUser.
-if (window.context?.isAuthenticatedUser) {
+if (typeof window !== 'undefined' && window.context?.isAuthenticatedUser) {
     refreshAuthenticatedUser()
         .toPromise()
         .then(

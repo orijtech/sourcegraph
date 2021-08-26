@@ -14,6 +14,7 @@ import {
     MutationTuple,
     QueryTuple,
 } from '@apollo/client'
+import fetch from 'cross-fetch'
 import { GraphQLError } from 'graphql'
 import { useMemo } from 'react'
 import { Observable } from 'rxjs'
@@ -99,6 +100,7 @@ export const graphQLClient = ({ headers }: { headers: RequestInit['headers'] }):
         link: createHttpLink({
             uri: ({ operationName }) => `${GRAPHQL_URI}?${operationName}`,
             headers,
+            fetch,
         }),
     })
 

@@ -5,7 +5,6 @@ import { ShortcutProvider } from '@slimsag/react-shortcuts'
 import ServerIcon from 'mdi-react/ServerIcon'
 import * as React from 'react'
 import { Route } from 'react-router'
-import { BrowserRouter } from 'react-router-dom'
 import { combineLatest, from, Subscription, fromEvent, of, Subject } from 'rxjs'
 import { bufferCount, catchError, startWith, switchMap } from 'rxjs/operators'
 
@@ -494,7 +493,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
                 <ErrorBoundary location={null}>
                     <ShortcutProvider>
                         <TemporarySettingsProvider authenticatedUser={authenticatedUser}>
-                            <BrowserRouter key={0}>
+                            <div data-foo="TODO(sqs): in place of BrowserRouter to avoid big de-indentation diff">
                                 <Route
                                     path="/"
                                     render={routeComponentProps => (
@@ -569,7 +568,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
                                         </CodeHostScopeProvider>
                                     )}
                                 />
-                            </BrowserRouter>
+                            </div>
                             <Tooltip key={1} />
                             <Notifications
                                 key={2}

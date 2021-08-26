@@ -1,3 +1,5 @@
+import './browserEnv'
+
 import child_process from 'child_process'
 import http from 'http'
 import path from 'path'
@@ -7,9 +9,11 @@ import { handleRequest } from './handle'
 const webpackHost = 'sourcegraph.test'
 const webpackPort = 3443
 
+const port = process.env.PORT || 5501
+
 http.createServer(async (request, response) => {
-    const PRERENDER = false
-    if (PRERENDER && request.url!.startsWith('/flights')) {
+    const PRERENDER = true
+    if (PRERENDER && (request.url! === '/' || request.url! === '/search')) {
         const SPAWN = false
         if (SPAWN) {
             const child = child_process.execFile('babel-node', [
@@ -25,7 +29,11 @@ http.createServer(async (request, response) => {
         }
 
         response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-        await handleRequest(response, request.url!, require('./jscontext').JSCONTEXT, {})
+        try {
+            await handleRequest(response, request.url!, require('./jscontext').JSCONTEXT, {})
+        } catch (err) {
+            console.error('ERROR', err)
+        }
         return
     }
 
@@ -53,6 +61,6 @@ http.createServer(async (request, response) => {
 
     // Forward the body of the request to esbuild
     request.pipe(proxyRequest, { end: true })
-}).listen(process.env.PORT || 5501)
+}).listen(port)
 
-console.error('Ready')
+console.error(`Ready at http://localhost:${port}`)

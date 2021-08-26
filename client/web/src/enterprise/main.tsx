@@ -9,6 +9,7 @@ import '../sentry'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
 
 import { EnterpriseWebApp } from './EnterpriseWebApp'
 
@@ -17,5 +18,9 @@ import { EnterpriseWebApp } from './EnterpriseWebApp'
 window.addEventListener('DOMContentLoaded', () => {
     const root = document.querySelector('#root')!
     // TODO(sqs): <React.StrictMode> causes many problems
-    ReactDOM.createRoot(root, { hydrate: root.hasChildNodes() }).render(<EnterpriseWebApp />)
+    ReactDOM.createRoot(root, { hydrate: root.hasChildNodes() }).render(
+        <BrowserRouter>
+            <EnterpriseWebApp />
+        </BrowserRouter>
+    )
 })

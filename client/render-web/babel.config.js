@@ -36,21 +36,20 @@ const config = {
     "@babel/preset-react",
     "@babel/preset-typescript"
   ],
-  "ignore": [/EnterpriseWebAp2p/, path => {
-    console.log('X: ', path)
-    return false
-  }],
+  ignore: [
+    // TODO(sqs): sync up with jest.config.base.js transformIgnorePatterns
+    '../../node_modules/react-dom/**',
+    '../../node_modules/react/**',
+    '../../node_modules/mdi-react/**',
+    '../../node_modules/monaco-editor/**',
+  ],
   "plugins": [
-    ["transform-import-css", {
+    ["css-modules-transform", {
       // TODO(sqs): sync up with webpack.config.js localIdentName
-      "generateScopedName": "[name]__[local]_[hash:base64:5]"
+      "generateScopedName": "[name]__[local]_[hash:base64:5]",
+      extensions: [".css", ".scss"],
+      "camelCase": true,
     }],
-    [
-      "babel-plugin-transform-require-ignore",
-      {
-        "extensions": [".scss"]
-      }
-    ],
     ['@babel/plugin-transform-typescript', { isTSX: true }]
   ]
 }
