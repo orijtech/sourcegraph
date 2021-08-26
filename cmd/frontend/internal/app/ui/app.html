@@ -29,6 +29,7 @@
 	{{end}}
 	<title>{{.Title}}</title>
 	{{if not .WebpackDevServer}}<link rel="stylesheet" href="{{.Manifest.AppCSSBundlePath}}">{{end}}
+    <link rel="stylesheet" href="{{.Manifest.AppCSSBundlePath}}"><!--TODO(sqs): trying to avoid FOUC-->
 	<link id='sourcegraph-chrome-webstore-item' rel="chrome-webstore-item" href="https://chrome.google.com/webstore/detail/dgjhfomjieaadpoljlnidmbgkdffpack">
 	<link rel="search" href="/opensearch.xml" type="application/opensearchdescription+xml" title="Sourcegraph Search">
 	{{ if .Context.SourcegraphDotComMode }}

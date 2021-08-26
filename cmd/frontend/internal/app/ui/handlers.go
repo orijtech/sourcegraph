@@ -274,6 +274,7 @@ func newCommon(w http.ResponseWriter, r *http.Request, title string, serveError 
 		if presp != nil {
 			log15.Info("Prerender done", "url", r.URL.RequestURI(), "took", time.Since(start))
 			common.PrerenderedHTML = template.HTML(presp.HTML)
+			//x
 		}
 	}
 
