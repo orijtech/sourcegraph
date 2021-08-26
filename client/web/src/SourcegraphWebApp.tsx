@@ -25,7 +25,7 @@ import { aggregateStreamingSearch } from '@sourcegraph/shared/src/search/stream'
 import { EMPTY_SETTINGS_CASCADE, SettingsCascadeProps } from '@sourcegraph/shared/src/settings/settings'
 import { asError, isErrorLike } from '@sourcegraph/shared/src/util/errors'
 
-import { authenticatedUser, AuthenticatedUser } from './auth'
+import { authenticatedUser, AuthenticatedUser, authenticatedUserLET } from './auth'
 import { client } from './backend/graphql'
 import { BatchChangesProps } from './batches'
 import { CodeIntelligenceProps } from './codeintel'
@@ -311,6 +311,7 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
             // eslint-disable-next-line react/no-unused-state
             enableAPIDocs: false,
             featureFlags: new Map<FeatureFlagName, boolean>(),
+            authenticatedUser: authenticatedUserLET,
         }
     }
 
@@ -340,7 +341,10 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
                         viewerSubject: viewerSubjectFromSettings(settingsCascade, authenticatedUser),
                     }))
                 },
-                () => this.setState({ authenticatedUser: null })
+                error => {
+                    console.log('EEE', error)
+                    this.setState({ authenticatedUser: null })
+                }
             )
         )
 
@@ -478,14 +482,14 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
             return <HeroPage icon={ServerIcon} title={`${statusCode}: ${statusText}`} subtitle={subtitle} />
         }
 
-        // return <h1>hello, world</h1>
-
-        let { authenticatedUser } = this.state
+        const { authenticatedUser } = this.state
+        console.log('REnder AU', authenticatedUser)
         if (authenticatedUser === undefined) {
-            if (!window.context.PRERENDER) {
+            /* if (!window.context.PRERENDER) {
                 return null
-            }
-            authenticatedUser = null
+            } */
+            // authenticatedUser = null
+            return null
         }
 
         const { children, ...props } = this.props
@@ -619,6 +623,9 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
         }
 
         const extensionHostAPI = await this.extensionsController.extHostAPI
+        if (!extensionHostAPI) {
+            return // TODO(sqs): not set in prerender
+        }
         // Note: `setVersionContext` is now asynchronous since the version context
         // is sent directly to extensions in the worker thread. This means that when the Promise
         // is in a fulfilled state, we know that extensions have received the latest version context
@@ -665,6 +672,9 @@ export class SourcegraphWebApp extends React.Component<SourcegraphWebAppProps, S
 
     private async setWorkspaceSearchContext(spec: string | undefined): Promise<void> {
         const extensionHostAPI = await this.extensionsController.extHostAPI
+        if (!extensionHostAPI) {
+            return // TODO(sqs): not set in prerender
+        }
         await extensionHostAPI.setSearchContext(spec)
     }
 }

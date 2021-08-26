@@ -4,7 +4,7 @@ global.window = {
     location: {},
     dispatchEvent: () => {},
     context: require('./jscontext').JSCONTEXT,
-    matchMedia: () => ({ matches: false }),
+    matchMedia: () => ({ matches: false, ...EventListener }),
     ...EventListener,
 }
 global.localStorage = {
@@ -37,3 +37,4 @@ global.Element = {
 }
 window.Element = global.Element
 global.self = { ...window, close: () => {} }
+global.fetch = require('cross-fetch')
