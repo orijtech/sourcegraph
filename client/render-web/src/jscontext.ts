@@ -1,4 +1,6 @@
-export const JSCONTEXT = {
+const x = require('/tmp/jscontext.json')
+
+export const JSCONTEXT = x || {
     PRERENDER: true,
     externalURL: 'https://sourcegraph.test:3443',
     xhrHeaders: {

@@ -3,7 +3,6 @@
 const { babelPresetEnvCommonOptions } = require('../../babel.config')
 const jestConfig = require('../../jest.config.base')
 
-
 if (!jestConfig.transformIgnorePatterns) {
   throw new Error('expected jest config to specify transformIgnorePatterns')
 }
@@ -27,12 +26,12 @@ const config = {
       },
     ],
   ],
-  "plugins": [
-    ["css-modules-transform", {
-      // TODO(sqs): sync up with webpack.config.js localIdentName
-      "generateScopedName": "[name]__[local]_[hash:base64:5]",
-      extensions: [".css", ".scss"],
-      "camelCase": true,
+  plugins: [
+    ['css-modules-transform', {
+      // TODO(sqs): sync up with webpack.config.js localIdentName TODO(sqs): removed `_[hash:base64:5]`
+      generateScopedName: '[name]__[local]',
+      extensions: ['.css', '.scss'],
+      camelCase: true,
     }],
   ]
 }

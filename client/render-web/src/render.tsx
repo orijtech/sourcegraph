@@ -20,13 +20,18 @@ export interface RenderResponse {
 }
 
 export const render = async ({ requestURI, jscontext }: RenderRequest): Promise<RenderResponse> => {
+    // TODO(sqs): not parallel-safe
+    if (jscontext && Object.keys(jscontext) > 0 /* TODO(sqs): remove this check, just for curl debugging */) {
+        global.window.context = jscontext
+    }
+    global.window.context.PRERENDER = true
+
     const routerContext: { url?: string } = {}
     const e = (
-        <React.StrictMode>
-            <StaticRouter location={requestURI} context={routerContext}>
-                <EnterpriseWebApp />
-            </StaticRouter>
-        </React.StrictMode>
+        // TODO(sqs): wrap in <React.StrictMode>
+        <StaticRouter location={requestURI} context={routerContext}>
+            <EnterpriseWebApp />
+        </StaticRouter>
     )
     // TODO(sqs): figure out how many times to iterate async
     ReactDOMServer.renderToString(e)

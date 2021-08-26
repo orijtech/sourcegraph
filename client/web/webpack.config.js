@@ -218,7 +218,7 @@ const config = {
             url: false,
             modules: {
               exportLocalsConvention: 'camelCase',
-              localIdentName: '[name]__[local]_[hash:base64:5]',
+              localIdentName: '[name]__[local]',
             },
           },
         }),
