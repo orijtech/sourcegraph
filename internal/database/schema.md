@@ -1137,6 +1137,8 @@ Stores the retention policy of code intellience data for a repository.
  worker_hostname        | text                     |           | not null | ''::text
  last_heartbeat_at      | timestamp with time zone |           |          | 
  execution_logs         | json[]                   |           |          | 
+ expired                | boolean                  |           | not null | false
+ num_references         | integer                  |           |          | 
 Indexes:
     "lsif_uploads_pkey" PRIMARY KEY, btree (id)
     "lsif_uploads_repository_id_commit_root_indexer" UNIQUE, btree (repository_id, commit, root, indexer) WHERE state = 'completed'::text
