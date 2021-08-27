@@ -143,6 +143,14 @@ func (h *handler) handle(ctx context.Context, upload store.Upload) (requeued boo
 				return errors.Wrap(err, "store.UpdatePackageReferences")
 			}
 
+			// TODO - document
+			if err := tx.UpdateNumReferences(ctx, []int{upload.ID}); err != nil {
+				return errors.Wrap(err, "store.UpdateNumReferences")
+			}
+			if err := tx.UpdateNumReferencesBackwards(ctx, []int{upload.ID}, false); err != nil {
+				return errors.Wrap(err, "store.UpdateNumReferencesBackwards")
+			}
+
 			// Before we mark the upload as complete, we need to delete any existing completed uploads
 			// that have the same repository_id, commit, root, and indexer values. Otherwise the transaction
 			// will fail as these values form a unique constraint.

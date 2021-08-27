@@ -681,7 +681,22 @@ func (s *Store) HardDeleteUploadByID(ctx context.Context, ids ...int) (err error
 		idQueries = append(idQueries, sqlf.Sprintf("%s", id))
 	}
 
-	return s.Store.Exec(ctx, sqlf.Sprintf(hardDeleteUploadByIDQuery, sqlf.Join(idQueries, ", ")))
+	tx, err := s.Transact(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { err = tx.Done(err) }()
+
+	// TODO - document
+	if err := tx.UpdateNumReferencesBackwards(ctx, ids, true); err != nil {
+		return err
+	}
+
+	if err := tx.Exec(ctx, sqlf.Sprintf(hardDeleteUploadByIDQuery, sqlf.Join(idQueries, ", "))); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 const hardDeleteUploadByIDQuery = `
@@ -689,13 +704,6 @@ const hardDeleteUploadByIDQuery = `
 DELETE FROM lsif_uploads WHERE id IN (%s)
 `
 
-//
-// OOB Migration:
-//   1. Fill in ref'd count where NULL
-//
-// When uploading:
-//   1. Find our initial ref'd count and update refcount of dependencies (if not NULL)
-//
 // Background A (for each repository with upload data):
 //   1. Pull policies that should be applied to repository
 //   2. Find candidate records to mark as expired
@@ -708,6 +716,95 @@ DELETE FROM lsif_uploads WHERE id IN (%s)
 //   3. Soft delete record
 //   4. Repeat until fixed point
 //
+
+// TODO - rename
+// TODO - document
+// TODO - test
+func (s *Store) UpdateNumReferences(ctx context.Context, ids []int) (err error) {
+	ctx, endObservation := s.operations.updateNumReferences.With(ctx, &err, observation.Args{LogFields: []log.Field{
+		log.Int("numIDs", len(ids)),
+		log.String("ids", intsToString(ids)),
+	}})
+	defer endObservation(1, observation.Args{})
+
+	columnMatchingIDs := sqlf.Sprintf("p.dump_id")
+	numReferencesValueExpression := sqlf.Sprintf(updateNumReferencesSelectCountFragment)
+	return s.updateNumReferences(ctx, ids, columnMatchingIDs, numReferencesValueExpression)
+}
+
+// TODO - rename
+// TODO - document
+// TODO - test
+func (s *Store) UpdateNumReferencesBackwards(ctx context.Context, ids []int, decrement bool) (err error) {
+	ctx, endObservation := s.operations.updateNumReferences.With(ctx, &err, observation.Args{LogFields: []log.Field{
+		log.Int("numIDs", len(ids)),
+		log.String("ids", intsToString(ids)),
+		log.Bool("decrement", decrement),
+	}})
+	defer endObservation(1, observation.Args{})
+
+	delta := 1
+	if decrement {
+		delta = -1
+	}
+
+	columnMatchingIDs := sqlf.Sprintf("r.dump_id")
+	fragment := sqlf.Sprintf(updateNumReferencesSelectCountFragment)
+	numReferencesValueExpression := sqlf.Sprintf("CASE %s WHEN 0 THEN 0 ELSE num_references + (%s * %s) END", fragment, fragment, delta)
+	return s.updateNumReferences(ctx, ids, columnMatchingIDs, numReferencesValueExpression)
+}
+
+const updateNumReferencesSelectCountFragment = `
+COALESCE((SELECT rc.count FROM reference_counts rc WHERE rc.dump_id = u.id), 0)
+`
+
+// TODO - document
+func (s *Store) updateNumReferences(ctx context.Context, ids []int, columnMatchingIDs, numReferencesValueExpression *sqlf.Query) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	queries := make([]*sqlf.Query, 0, len(ids))
+	for _, id := range ids {
+		queries = append(queries, sqlf.Sprintf("%s", id))
+	}
+
+	return s.Exec(ctx, sqlf.Sprintf(
+		updateNumReferencesQuery,
+		sqlf.Join(queries, ", "),
+		columnMatchingIDs,
+		columnMatchingIDs,
+		columnMatchingIDs,
+		numReferencesValueExpression,
+	))
+}
+
+var updateNumReferencesQuery = `
+-- source: enterprise/internal/codeintel/stores/dbstore/uploads.go:updateNumReferences
+WITH locked_uploads AS (
+	SELECT u.id
+	FROM lsif_uploads u
+	WHERE u.id in (%s)
+	ORDER BY u.id FOR UPDATE
+),
+reference_counts AS (
+	SELECT
+		%s,
+		count(*) AS count
+	FROM lsif_packages p
+	JOIN lsif_references r
+	ON
+		p.scheme = r.scheme AND
+		p.name = r.name AND
+		p.version = r.version AND
+		p.dump_id != r.dump_id
+	WHERE %s IN (SELECT id FROM locked_uploads)
+	GROUP BY %s
+)
+UPDATE lsif_uploads u
+SET num_references = %s
+WHERE u.id IN (SELECT id FROM locked_uploads)
+`
 
 // SoftDeleteOldUploads marks uploads older than the given age that are not visible at the tip of the default branch
 // as deleted. The associated repositories will be marked as dirty so that their commit graphs are updated in the
