@@ -727,39 +727,6 @@ func (s *Store) UpdateNumReferences(ctx context.Context, ids []int) (err error) 
 	}})
 	defer endObservation(1, observation.Args{})
 
-	columnMatchingIDs := sqlf.Sprintf("p.dump_id")
-	numReferencesValueExpression := sqlf.Sprintf(updateNumReferencesSelectCountFragment)
-	return s.updateNumReferences(ctx, ids, columnMatchingIDs, numReferencesValueExpression)
-}
-
-// TODO - rename
-// TODO - document
-// TODO - test
-func (s *Store) UpdateNumReferencesBackwards(ctx context.Context, ids []int, decrement bool) (err error) {
-	ctx, endObservation := s.operations.updateNumReferences.With(ctx, &err, observation.Args{LogFields: []log.Field{
-		log.Int("numIDs", len(ids)),
-		log.String("ids", intsToString(ids)),
-		log.Bool("decrement", decrement),
-	}})
-	defer endObservation(1, observation.Args{})
-
-	delta := 1
-	if decrement {
-		delta = -1
-	}
-
-	columnMatchingIDs := sqlf.Sprintf("r.dump_id")
-	fragment := sqlf.Sprintf(updateNumReferencesSelectCountFragment)
-	numReferencesValueExpression := sqlf.Sprintf("CASE %s WHEN 0 THEN 0 ELSE num_references + (%s * %s) END", fragment, fragment, delta)
-	return s.updateNumReferences(ctx, ids, columnMatchingIDs, numReferencesValueExpression)
-}
-
-const updateNumReferencesSelectCountFragment = `
-COALESCE((SELECT rc.count FROM reference_counts rc WHERE rc.dump_id = u.id), 0)
-`
-
-// TODO - document
-func (s *Store) updateNumReferences(ctx context.Context, ids []int, columnMatchingIDs, numReferencesValueExpression *sqlf.Query) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -772,15 +739,11 @@ func (s *Store) updateNumReferences(ctx context.Context, ids []int, columnMatchi
 	return s.Exec(ctx, sqlf.Sprintf(
 		updateNumReferencesQuery,
 		sqlf.Join(queries, ", "),
-		columnMatchingIDs,
-		columnMatchingIDs,
-		columnMatchingIDs,
-		numReferencesValueExpression,
 	))
 }
 
 var updateNumReferencesQuery = `
--- source: enterprise/internal/codeintel/stores/dbstore/uploads.go:updateNumReferences
+-- source: enterprise/internal/codeintel/stores/dbstore/uploads.go:UpdateNumReferences
 WITH locked_uploads AS (
 	SELECT u.id
 	FROM lsif_uploads u
@@ -789,7 +752,7 @@ WITH locked_uploads AS (
 ),
 reference_counts AS (
 	SELECT
-		%s,
+		p.dump_id,
 		count(*) AS count
 	FROM lsif_packages p
 	JOIN lsif_references r
@@ -798,11 +761,68 @@ reference_counts AS (
 		p.name = r.name AND
 		p.version = r.version AND
 		p.dump_id != r.dump_id
-	WHERE %s IN (SELECT id FROM locked_uploads)
-	GROUP BY %s
+	WHERE p.dump_id IN (SELECT id FROM locked_uploads)
+	GROUP BY p.dump_id
 )
 UPDATE lsif_uploads u
-SET num_references = %s
+SET num_references = COALESCE((SELECT rc.count FROM reference_counts rc WHERE rc.dump_id = u.id), 0)
+WHERE u.id IN (SELECT id FROM locked_uploads)
+`
+
+// TODO - rename
+// TODO - document
+// TODO - test
+func (s *Store) UpdateNumReferencesBackwards(ctx context.Context, ids []int, decrement bool) (err error) {
+	ctx, endObservation := s.operations.updateNumReferences.With(ctx, &err, observation.Args{LogFields: []log.Field{
+		log.Int("numIDs", len(ids)),
+		log.String("ids", intsToString(ids)),
+		log.Bool("decrement", decrement),
+	}})
+	defer endObservation(1, observation.Args{})
+
+	if len(ids) == 0 {
+		return nil
+	}
+
+	queries := make([]*sqlf.Query, 0, len(ids))
+	for _, id := range ids {
+		queries = append(queries, sqlf.Sprintf("%s", id))
+	}
+
+	delta := 1
+	if decrement {
+		delta = -1
+	}
+
+	return s.Exec(ctx, sqlf.Sprintf(updateNumReferencesBackwardsQuery, sqlf.Join(queries, ", "), delta))
+}
+
+var updateNumReferencesBackwardsQuery = `
+-- source: enterprise/internal/codeintel/stores/dbstore/uploads.go:UpdateNumReferencesBackwards
+WITH reference_counts AS (
+	SELECT
+		p.dump_id,
+		count(*) AS count
+	FROM lsif_packages p
+	JOIN lsif_references r
+	ON
+		p.scheme = r.scheme AND
+		p.name = r.name AND
+		p.version = r.version AND
+		p.dump_id != r.dump_id
+	WHERE r.dump_id IN (%s)
+	GROUP BY p.dump_id
+),
+locked_uploads AS (
+	SELECT
+		u.id,
+		(SELECT rc.count FROM reference_counts rc WHERE rc.dump_id = u.id) AS count
+	FROM lsif_uploads u
+	WHERE u.id in (SELECT rc.dump_id FROM reference_counts rc)
+	ORDER BY u.id FOR UPDATE
+)
+UPDATE lsif_uploads u
+SET num_references = num_references + ((SELECT lu.count FROM locked_uploads lu WHERE lu.id = u.id) * %s)
 WHERE u.id IN (SELECT id FROM locked_uploads)
 `
 
